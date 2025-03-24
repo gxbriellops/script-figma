@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gerador de Carrossel</title>
+  <style>
+    :root {
+      --primary-color: #18A0FB;
+      --secondary-color: #0D8CE0;
+      --background-color: #FFFFFF;
+      --text-color: #333333;
+      --border-color: #E0E0E0;
+      --hover-color: #F5F5F5;
+      --error-color: #EB5757;
+      --success-color: #27AE60;
+    }
+
+    /* Modo escuro */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary-color: #18A0FB;
+        --secondary-color: #0D8CE0;
+        --background-color: #2C2C2C;
+        --text-color: #E0E0E0;
+        --border-color: #4D4D4D;
+        --hover-color: #3C3C3C;
+        --error-color: #EB5757;
+        --success-color: #27AE60;
+      }
+    }
+
+    body {
+      font-family: 'Inter', 'Roboto', sans-serif;
+      margin: 0;
+      padding: 16px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      font-size: 14px;
+      line-height: 1.5;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3 {
+      color: var(--text-color);
+      margin-top: 0;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 100%;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .form-row .form-group {
+      flex: 1;
+    }
+
+    label {
+      font-weight: 500;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    input, select, textarea {
+      padding: 8px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.2);
+    }
+
+    textarea {
+      min-height: 150px;
+      resize: vertical;
+      font-family: 'Inter', sans-serif;
+    }
+
+    input[type="color"] {
+      height: 40px;
+      padding: 2px;
+      cursor: pointer;
+    }
+
+    input[type="checkbox"] {
+      width: auto;
+      margin-right: 8px;
+    }
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: var(--secondary-color);
+    }
+
+    button.secondary {
+      background-color: transparent;
+      color: var(--primary-color);
+      border: 1px solid var(--primary-color);
+    }
+
+    button.secondary:hover {
+      background-color: rgba(24, 160, 251, 0.1);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+
+    .text-count {
+      color: var(--text-color);
+      opacity: 0.7;
+      font-size: 12px;
+      text-align: right;
+      margin-top: 4px;
+    }
+
+    .divider {
+      border-top: 1px solid var(--border-color);
+      margin: 8px 0;
+    }
+
+    .accordion {
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .accordion-header {
+      background-color: var(--background-color);
+      padding: 12px 16px;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .accordion-header:hover {
+      background-color: var(--hover-color);
+    }
+
+    .accordion-content {
+      padding: 16px;
+      display: none;
+    }
+
+    .accordion-content.active {
+      display: block;
+    }
+
+    .error {
+      color: var(--error-color);
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+    }
+
+    .template-option {
+      padding: 8px;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .template-option:hover {
+      background-color: var(--hover-color);
+    }
+
+    .template-option.selected {
+      border-color: var(--primary-color);
+      background-color: rgba(24, 160, 251, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Gerador de Carrossel</h2>
+    
+    <div class="form-group">
+      <label for="text">Texto para dividir em slides:</label>
+      <textarea id="text" placeholder="Cole seu texto aqui..." oninput="updateCharCount()"></textarea>
+      <div class="text-count" id="charCount">0 caracteres</div>
+      <div class="error" id="textError">Este campo é obrigatório</div>
+    </div>
+    
+    <div class="form-row">
+      <div class="form-group">
+        <label for="slideCount">Número de Slides:</label>
+        <input type="number" id="slideCount" min="1" max="30" value="3">
+        <div class="error" id="slideCountError">Valor inválido</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="fontFamily">Fonte:</label>
+        <select id="fontFamily">
+          <option value="Inter">Inter</option>
+          <option value="Roboto">Roboto</option>
+          <option value="Arial">Arial</option>
+          <option value="Helvetica">Helvetica</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Times New Roman">Times New Roman</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion('visualOptions')">
+        <span>Opções Visuais</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content" id="visualOptions">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="primaryColor">Cor de Fundo:</label>
+            <input type="color" id="primaryColor" value="#FFFFFF">
+          </div>
+          
+          <div class="form-group">
+            <label for="textColor">Cor do Texto:</label>
+            <input type="color" id="textColor" value="#000000">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="layoutStyle">Estilo de Layout:</label>
+          <select id="layoutStyle">
+            <option value="centered">Centralizado</option>
+            <option value="left-aligned">Alinhado à Esquerda</option>
+            <option value="right-aligned">Alinhado à Direita</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fontSize">Tamanho da Fonte:</label>
+            <input type="number" id="fontSize" min="12" max="72" value="32">
+          </div>
+          
+          <div class="form-group">
+            <label for="padding">Espaçamento (px):</label>
+            <input type="number" id="padding" min="20" max="200" value="80">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-header" onclick="toggleAccordion('templates')">
+        <span>Templates</span>
+        <span>▼</span>
+      </div>
+      <div class="accordion-content" id="templates">
+        <div class="form-row" style="margin-bottom: 12px;">
+          <div class="template-option selected" onclick="applyTemplate('minimal')">
+            <strong>Minimalista</strong><br>
+            <small>Clean, espaçado, elegante</small>
+          </div>
+          <div class="template-option" onclick="applyTemplate('professional')">
+            <strong>Profissional</strong><br>
+            <small>Formal, estruturado</small>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="template-option" onclick="applyTemplate('creative')">
+            <strong>Criativo</strong><br>
+            <small>Cores vibrantes, moderno</small>
+          </div>
+          <div class="template-option" onclick="applyTemplate('dark')">
+            <strong>Dark Mode</strong><br>
+            <small>Contraste alto, menos cansativo</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-group">
+      <label class="checkbox-label">
+        <input type="checkbox" id="includePageNumbers" checked>
+        Incluir numeração de páginas
+      </label>
+    </div>
+
+    <div class="buttons">
+      <button id="create" onclick="createCarousel()">Gerar Carrossel</button>
+      <button class="secondary" onclick="cancel()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    // Controla os acordeões da interface
+    function toggleAccordion(id) {
+      const content = document.getElementById(id);
+      content.classList.toggle('active');
+    }
+
+    // Atualiza a contagem de caracteres
+    function updateCharCount() {
+      const text = document.getElementById('text').value;
+      const charCount = document.getElementById('charCount');
+      charCount.textContent = `${text.length} caracteres`;
+    }
+
+    // Aplica templates pré-definidos
+    function applyTemplate(templateName) {
+      // Remove seleção de todos os templates
+      document.querySelectorAll('.template-option').forEach(el => {
+        el.classList.remove('selected');
+      });
+
+      // Adiciona seleção ao template clicado
+      const templateElement = event.currentTarget;
+      templateElement.classList.add('selected');
+
+      // Aplica configurações do template
+      switch (templateName) {
+        case 'minimal':
+          document.getElementById('primaryColor').value = '#FFFFFF';
+          document.getElementById('textColor').value = '#333333';
+          document.getElementById('layoutStyle').value = 'centered';
+          document.getElementById('fontSize').value = '32';
+          document.getElementById('padding').value = '100';
+          document.getElementById('fontFamily').value = 'Inter';
+          break;
+        case 'professional':
+          document.getElementById('primaryColor').value = '#F5F7FA';
+          document.getElementById('textColor').value = '#2D3748';
+          document.getElementById('layoutStyle').value = 'left-aligned';
+          document.getElementById('fontSize').value = '28';
+          document.getElementById('padding').value = '80';
+          document.getElementById('fontFamily').value = 'Arial';
+          break;
+        case 'creative':
+          document.getElementById('primaryColor').value = '#FFF8E1';
+          document.getElementById('textColor').value = '#6D4C41';
+          document.getElementById('layoutStyle').value = 'centered';
+          document.getElementById('fontSize').value = '36';
+          document.getElementById('padding').value = '60';
+          document.getElementById('fontFamily').value = 'Georgia';
+          break;
+        case 'dark':
+          document.getElementById('primaryColor').value = '#1A202C';
+          document.getElementById('textColor').value = '#E2E8F0';
+          document.getElementById('layoutStyle').value = 'centered';
+          document.getElementById('fontSize').value = '32';
+          document.getElementById('padding').value = '80';
+          document.getElementById('fontFamily').value = 'Roboto';
+          break;
+      }
+    }
+
+    // Valida o formulário
+    function validateForm() {
+      let isValid = true;
+      
+      // Valida o texto
+      const text = document.getElementById('text').value;
+      const textError = document.getElementById('textError');
+      if (!text.trim()) {
+        textError.style.display = 'block';
+        isValid = false;
+      } else {
+        textError.style.display = 'none';
+      }
+      
+      // Valida o número de slides
+      const slideCount = parseInt(document.getElementById('slideCount').value);
+      const slideCountError = document.getElementById('slideCountError');
+      if (isNaN(slideCount) || slideCount < 1 || slideCount > 30) {
+        slideCountError.style.display = 'block';
+        isValid = false;
+      } else {
+        slideCountError.style.display = 'none';
+      }
+      
+      return isValid;
+    }
+
+    // Cria o carrossel
+    function createCarousel() {
+      if (!validateForm()) {
+        return;
+      }
+      
+      const text = document.getElementById('text').value;
+      const slideCount = parseInt(document.getElementById('slideCount').value);
+      const fontFamily = document.getElementById('fontFamily').value;
+      const primaryColor = document.getElementById('primaryColor').value;
+      const textColor = document.getElementById('textColor').value;
+      const layoutStyle = document.getElementById('layoutStyle').value;
+      const includePageNumbers = document.getElementById('includePageNumbers').checked;
+      const fontSize = parseInt(document.getElementById('fontSize').value);
+      const padding = parseInt(document.getElementById('padding').value);
+      
+      parent.postMessage({
+        pluginMessage: {
+          type: 'create-carousel',
+          text,
+          slideCount,
+          fontFamily,
+          primaryColor,
+          secondaryColor: '', // Deixado vazio para que o SlideGenerator calcule uma cor secundária
+          textColor,
+          layoutStyle,
+          includePageNumbers,
+          fontSize,
+          padding
+        }
+      }, '*');
+    }
+
+    // Cancela e fecha o plugin
+    function cancel() {
+      parent.postMessage({
+        pluginMessage: {
+          type: 'cancel'
+        }
+      }, '*');
+    }
+
+    // Inicializa a interface
+    document.addEventListener('DOMContentLoaded', function() {
+      updateCharCount();
+      // Ativa o primeiro acordeão por padrão
+      toggleAccordion('visualOptions');
+    });
+  </script>
+</body>
+</html>

@@ -1,18 +1,19 @@
 {
-  "name": "Carrosel Automatico",
-  "id": "1486022780183884459",
+  "name": "Carrossel Automatico",
+  "id": "text-carousel-generator",
   "api": "1.0.0",
-  "main": "code.js",
-  "capabilities": [],
-  "enableProposedApi": false,
-  "documentAccess": "dynamic-page",
-  "editorType": [
-    "figma"
-  ],
+  "main": "dist/code.js",
   "ui": "ui.html",
+  "editorType": ["figma"],
   "networkAccess": {
-    "allowedDomains": [
-      "none"
-    ]
-  }
+    "allowedDomains": ["none"]
+  },
+  "documentAccess": "dynamic-page",
+  "permissions": ["currentuser"],
+  "menu": [
+    {
+      "name": "Gerador de Carrossel",
+      "command": "create-carousel"
+    }
+  ]
 }
